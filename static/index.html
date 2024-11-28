@@ -198,14 +198,6 @@
           }
         });
 
-        // File Input Handler
-        fileInput.addEventListener("change", (e) => {
-          if (e.target.files.length) {
-            handleFileUpload(e.target.files[0]);
-          }
-        });
-
-        // Upload File
         async function handleFileUpload(file) {
           const formData = new FormData();
           formData.append("file", file);
@@ -231,21 +223,29 @@
             };
 
             xhr.onload = () => {
-              if (xhr.status === 200) {
+              try {
                 const result = JSON.parse(xhr.responseText);
-                if (result.status === "success") {
+                if (xhr.status === 200 && result.status === "success") {
                   updateStatus(
                     `Загружено успешно: ${result.filename}`,
                     "success"
                   );
+                } else if (xhr.status === 400) {
+                  const errorMessage = result.detail || "Неизвестная ошибка.";
+                  updateStatus(`Ошибка 400: ${errorMessage}`, "error");
                 } else {
-                  updateStatus(`Ошибка: ${result.message}`, "error");
+                  const errorMessage = result.message || "Неизвестная ошибка.";
+                  updateStatus(
+                    `Ошибка ${xhr.status}: ${errorMessage}`,
+                    "error"
+                  );
                 }
-              } else {
-                updateStatus("Ошибка на сервере. Попробуйте позже.", "error");
+              } catch (err) {
+                updateStatus(
+                  `Ошибка ${xhr.status}: Некорректный ответ от сервера.`,
+                  "error"
+                );
               }
-
-              updateStatus("Загрузка завершена!", "success");
             };
 
             xhr.onerror = () => {
