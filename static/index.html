@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Загрузка аудиосообщения</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=SF+Pro:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      href="static/img/photo_2024-11-28_21-08-26_7442393659212824592.ico"
+      type="image/x-icon"
+    />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "SF Pro", sans-serif;
+        background-color: #0a192f; /* Цвет фона под стиль логотипа */
+        color: #ffffff; /* Белый текст */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+
+      .container {
+        text-align: center;
+        background: #02223b; /* Тёмно-синий фон */
+        padding: 40px 20px;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        max-width: 400px;
+        width: 100%;
+        position: relative;
+      }
+
+      .logo {
+        width: 300px; /* Задайте фиксированную ширину */
+        height: 300px; /* Задайте фиксированную высоту */
+        object-fit: cover; /* Контент заполнит область (может быть обрезан для соответствия пропорциям) */
+        margin-bottom: 20px;
+      }
+
+      h1 {
+        font-size: 24px;
+        margin-bottom: 16px;
+        font-weight: 700;
+        color: #ffffff;
+      }
+
+      p {
+        font-size: 16px;
+        margin-bottom: 20px;
+        color: #8892b0; /* Мягкий серо-синий цвет */
+      }
+
+      .drop-area {
+        border: 2px dashed #64ffda; /* Яркий акцент */
+        border-radius: 12px;
+        padding: 20px;
+        background-color: #233554; /* Ещё один оттенок синего */
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+      }
+
+      .drop-area.dragover {
+        background-color: #64ffda22;
+        border-color: #64ffda;
+      }
+
+      .drop-area p {
+        margin: 0;
+        font-size: 14px;
+        color: #ccd6f6; /* Бледный акцент */
+      }
+
+      input[type="file"] {
+        display: none;
+      }
+
+      button {
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: #64ffda; /* Основной акцент */
+        color: #0a192f;
+        font-weight: 500;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        font-size: 16px;
+      }
+
+      button:hover {
+        background-color: #52e0c4;
+        transform: scale(1.05);
+      }
+
+      #status {
+        margin-top: 20px;
+        font-size: 16px;
+        font-weight: 500;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      #status.success {
+        color: #64ffda;
+        opacity: 1;
+      }
+
+      #status.error {
+        color: #dc3545;
+        opacity: 1;
+      }
+
+      .progress-bar {
+        display: none;
+        width: 100%;
+        height: 4px;
+        background-color: #8892b0;
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 20px;
+        position: relative;
+      }
+
+      .progress {
+        width: 0;
+        height: 100%;
+        background-color: #64ffda;
+        border-radius: 2px;
+        transition: width 0.2s ease;
+      }
+
+      #percent {
+        margin-top: 8px;
+        font-size: 14px;
+        color: #ccd6f6;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Логотип -->
+      <img src="static/img/image.png" alt="Логотип" class="logo" />
+
+      <!-- Заголовок -->
+      <h1>Загрузка аудиосообщения</h1>
+      <p>Перетащите файл в область ниже или выберите его вручную.</p>
+
+      <!-- Область для дропа -->
+      <div class="drop-area">
+        <p>Перетащите файл сюда</p>
+        <input type="file" id="audioFile" accept="audio/*" />
+      </div>
+
+      <!-- Кнопка -->
+      <button onclick="document.getElementById('audioFile').click()">
+        Выбрать файл
+      </button>
+
+      <!-- Полоса загрузки -->
+      <div class="progress-bar">
+        <div class="progress"></div>
+      </div>
+      <p id="percent">0%</p>
+      <p id="status"></p>
+    </div>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const dropArea = document.querySelector(".drop-area");
+        const fileInput = document.getElementById("audioFile");
+        const progressBarContainer = document.querySelector(".progress-bar");
+        const progressBar = document.querySelector(".progress");
+        const percentText = document.getElementById("percent");
+        const status = document.getElementById("status");
+
+        // Drag-and-Drop Handlers
+        dropArea.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          dropArea.classList.add("dragover");
+        });
+
+        dropArea.addEventListener("dragleave", () => {
+          dropArea.classList.remove("dragover");
+        });
+
+        dropArea.addEventListener("drop", (e) => {
+          e.preventDefault();
+          dropArea.classList.remove("dragover");
+          const files = e.dataTransfer.files;
+          if (files.length) {
+            handleFileUpload(files[0]);
+          }
+        });
+
+        // File Input Handler
+        fileInput.addEventListener("change", (e) => {
+          if (e.target.files.length) {
+            handleFileUpload(e.target.files[0]);
+          }
+        });
+
+        // Upload File
+        async function handleFileUpload(file) {
+          const formData = new FormData();
+          formData.append("file", file);
+
+          progressBarContainer.style.display = "block";
+          percentText.style.display = "block";
+          percentText.textContent = "0%";
+          progressBar.style.width = "0%";
+          updateStatus("", "");
+
+          try {
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/upload/", true);
+
+            xhr.upload.onprogress = (event) => {
+              if (event.lengthComputable) {
+                const percentComplete = Math.round(
+                  (event.loaded / event.total) * 100
+                );
+                progressBar.style.width = `${percentComplete}%`;
+                percentText.textContent = `${percentComplete}%`;
+              }
+            };
+
+            xhr.onload = () => {
+              if (xhr.status === 200) {
+                const result = JSON.parse(xhr.responseText);
+                if (result.status === "success") {
+                  updateStatus(
+                    `Загружено успешно: ${result.filename}`,
+                    "success"
+                  );
+                } else {
+                  updateStatus(`Ошибка: ${result.message}`, "error");
+                }
+              } else {
+                updateStatus("Ошибка на сервере. Попробуйте позже.", "error");
+              }
+
+              updateStatus("Загрузка завершена!", "success");
+            };
+
+            xhr.onerror = () => {
+              updateStatus("Ошибка соединения. Попробуйте позже.", "error");
+            };
+
+            xhr.send(formData);
+          } catch (error) {
+            updateStatus("Не удалось отправить файл.", "error");
+          }
+        }
+
+        function updateStatus(message, statusClass) {
+          status.textContent = message;
+          status.className = statusClass;
+        }
+      });
+    </script>
+  </body>
+</html>
