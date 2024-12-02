@@ -98,20 +98,20 @@
         transform: scale(1.05);
       }
 
-      #status {
+      .status-message {
         margin-top: 20px;
         font-size: 16px;
         font-weight: 500;
         opacity: 0;
-        transition: opacity 0.3s ease;
+        transition: opacity 1s ease-in-out;
       }
 
-      #status.success {
+      .status-message.success {
         color: #64ffda;
         opacity: 1;
       }
 
-      #status.error {
+      .status-message.error {
         color: #dc3545;
         opacity: 1;
       }
@@ -168,7 +168,8 @@
         <div class="progress"></div>
       </div>
       <p id="percent">0%</p>
-      <p id="status"></p>
+      <p id="uploadStatus" class="status-message"></p>
+      <p id="telegramStatus" class="status-message"></p>
     </div>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
@@ -177,7 +178,8 @@
         const progressBarContainer = document.querySelector(".progress-bar");
         const progressBar = document.querySelector(".progress");
         const percentText = document.getElementById("percent");
-        const status = document.getElementById("status");
+        const uploadStatus = document.getElementById("uploadStatus");
+        const telegramStatus = document.getElementById("telegramStatus");
 
         // Drag-and-Drop Handlers
         dropArea.addEventListener("dragover", (e) => {
@@ -206,7 +208,8 @@
           percentText.style.display = "block";
           percentText.textContent = "0%";
           progressBar.style.width = "0%";
-          updateStatus("", "");
+          updateStatus(uploadStatus, "", "");
+          updateStatus(telegramStatus, "", "");
 
           try {
             const xhr = new XMLHttpRequest();
@@ -227,21 +230,37 @@
                 const result = JSON.parse(xhr.responseText);
                 if (xhr.status === 200 && result.status === "success") {
                   updateStatus(
+                    uploadStatus,
                     `Загружено успешно: ${result.filename}`,
                     "success"
                   );
+
+                  // Пауза в 3 секунды перед следующим сообщением
+                  setTimeout(() => {
+                    updateStatus(
+                      telegramStatus,
+                      `Можете закрыть страницу и продолжить работу в Телеграмм боте.`,
+                      "success"
+                    );
+                  }, 1000);
                 } else if (xhr.status === 400) {
                   const errorMessage = result.detail || "Неизвестная ошибка.";
-                  updateStatus(`Ошибка 400: ${errorMessage}`, "error");
+                  updateStatus(
+                    uploadStatus,
+                    `Ошибка 400: ${errorMessage}`,
+                    "error"
+                  );
                 } else {
                   const errorMessage = result.message || "Неизвестная ошибка.";
                   updateStatus(
+                    uploadStatus,
                     `Ошибка ${xhr.status}: ${errorMessage}`,
                     "error"
                   );
                 }
               } catch (err) {
                 updateStatus(
+                  uploadStatus,
                   `Ошибка ${xhr.status}: Некорректный ответ от сервера.`,
                   "error"
                 );
@@ -249,18 +268,28 @@
             };
 
             xhr.onerror = () => {
-              updateStatus("Ошибка соединения. Попробуйте позже.", "error");
+              updateStatus(
+                uploadStatus,
+                "Ошибка соединения. Попробуйте позже.",
+                "error"
+              );
             };
 
             xhr.send(formData);
           } catch (error) {
-            updateStatus("Не удалось отправить файл.", "error");
+            updateStatus(uploadStatus, "Не удалось отправить файл.", "error");
           }
         }
 
-        function updateStatus(message, statusClass) {
-          status.textContent = message;
-          status.className = statusClass;
+        function updateStatus(element, message, statusClass) {
+          element.textContent = message;
+          element.className = `status-message ${statusClass}`;
+          element.classList.add("visible");
+
+          // Удаляем класс visible после анимации
+          setTimeout(() => {
+            element.classList.remove("visible");
+          }, 1000); // Длительность анимации
         }
       });
     </script>
