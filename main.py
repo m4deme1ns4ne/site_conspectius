@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from starlette.responses import JSONResponse
+import uvicorn
 
 from mimetypes import guess_type
 
@@ -67,3 +68,7 @@ async def validation_exception_handler(request, exc):
         status_code=422,
         content={"status": "error", "message": "Некорректный запрос.", "details": str(exc)},
     )
+
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", reload=True)

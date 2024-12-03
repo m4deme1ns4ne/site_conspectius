@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -18,8 +18,8 @@
         margin: 0;
         padding: 0;
         font-family: "SF Pro", sans-serif;
-        background-color: #0a192f; /* Цвет фона под стиль логотипа */
-        color: #ffffff; /* Белый текст */
+        background-color: #0a192f;
+        color: #ffffff;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -28,7 +28,7 @@
 
       .container {
         text-align: center;
-        background: #02223b; /* Тёмно-синий фон */
+        background: #02223b;
         padding: 40px 20px;
         border-radius: 16px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -38,9 +38,9 @@
       }
 
       .logo {
-        width: 300px; /* Задайте фиксированную ширину */
-        height: 300px; /* Задайте фиксированную высоту */
-        object-fit: cover; /* Контент заполнит область (может быть обрезан для соответствия пропорциям) */
+        width: 300px;
+        height: 300px;
+        object-fit: cover;
         margin-bottom: 20px;
       }
 
@@ -54,14 +54,14 @@
       p {
         font-size: 16px;
         margin-bottom: 20px;
-        color: #8892b0; /* Мягкий серо-синий цвет */
+        color: #8892b0;
       }
 
       .drop-area {
-        border: 2px dashed #64ffda; /* Яркий акцент */
+        border: 2px dashed #64ffda;
         border-radius: 12px;
         padding: 20px;
-        background-color: #233554; /* Ещё один оттенок синего */
+        background-color: #233554;
         transition: background-color 0.3s ease, border-color 0.3s ease;
       }
 
@@ -73,7 +73,7 @@
       .drop-area p {
         margin: 0;
         font-size: 14px;
-        color: #ccd6f6; /* Бледный акцент */
+        color: #ccd6f6;
       }
 
       input[type="file"] {
@@ -83,7 +83,7 @@
       button {
         margin-top: 20px;
         padding: 10px 20px;
-        background-color: #64ffda; /* Основной акцент */
+        background-color: #64ffda;
         color: #0a192f;
         font-weight: 500;
         border: none;
@@ -145,25 +145,19 @@
   </head>
   <body>
     <div class="container">
-      <!-- Логотип -->
       <img src="static/img/image.png" alt="Логотип" class="logo" />
-
-      <!-- Заголовок -->
       <h1>Загрузка аудиосообщения</h1>
       <p>Перетащите файл в область ниже или выберите его вручную.</p>
 
-      <!-- Область для дропа -->
       <div class="drop-area">
         <p>Перетащите файл сюда</p>
         <input type="file" id="audioFile" accept="audio/*" />
       </div>
 
-      <!-- Кнопка -->
       <button onclick="document.getElementById('audioFile').click()">
         Выбрать файл
       </button>
 
-      <!-- Полоса загрузки -->
       <div class="progress-bar">
         <div class="progress"></div>
       </div>
@@ -171,7 +165,11 @@
       <p id="uploadStatus" class="status-message"></p>
       <p id="telegramStatus" class="status-message"></p>
     </div>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
+      let tg = window.Telegram.WebApp;
+      tg.expand();
+
       document.addEventListener("DOMContentLoaded", () => {
         const dropArea = document.querySelector(".drop-area");
         const fileInput = document.getElementById("audioFile");
@@ -180,8 +178,8 @@
         const percentText = document.getElementById("percent");
         const uploadStatus = document.getElementById("uploadStatus");
         const telegramStatus = document.getElementById("telegramStatus");
+        const button = document.querySelector("button");
 
-        // Drag-and-Drop Handlers
         dropArea.addEventListener("dragover", (e) => {
           e.preventDefault();
           dropArea.classList.add("dragover");
@@ -200,9 +198,16 @@
           }
         });
 
+        fileInput.addEventListener("change", () => {
+          if (fileInput.files.length) {
+            handleFileUpload(fileInput.files[0]);
+          }
+        });
+
         async function handleFileUpload(file) {
-          const formData = new FormData();
-          formData.append("file", file);
+          // Скрыть области для дропа и кнопку
+          dropArea.style.display = "none";
+          button.style.display = "none";
 
           progressBarContainer.style.display = "block";
           percentText.style.display = "block";
@@ -210,6 +215,9 @@
           progressBar.style.width = "0%";
           updateStatus(uploadStatus, "", "");
           updateStatus(telegramStatus, "", "");
+
+          const formData = new FormData();
+          formData.append("file", file);
 
           try {
             const xhr = new XMLHttpRequest();
@@ -229,20 +237,19 @@
               try {
                 const result = JSON.parse(xhr.responseText);
                 if (xhr.status === 200 && result.status === "success") {
-                  updateStatus(
-                    uploadStatus,
-                    `Загружено успешно: ${result.filename}`,
-                    "success"
-                  );
-
-                  // Пауза в 3 секунды перед следующим сообщением
-                  setTimeout(() => {
-                    updateStatus(
-                      telegramStatus,
-                      `Можете закрыть страницу и продолжить работу в Телеграмм боте.`,
-                      "success"
-                    );
-                  }, 1000);
+                  tg.close();
+                  // updateStatus(
+                  //   uploadStatus,
+                  //   `Загружено успешно: ${result.filename}`,
+                  //   "success"
+                  // );
+                  // setTimeout(() => {
+                  //   updateStatus(
+                  //     telegramStatus,
+                  //     `Можете закрыть страницу и продолжить работу в Телеграмм боте.`,
+                  //     "success"
+                  //   );
+                  // }, 1000);
                 } else if (xhr.status === 400) {
                   const errorMessage = result.detail || "Неизвестная ошибка.";
                   updateStatus(
@@ -267,29 +274,19 @@
               }
             };
 
-            xhr.onerror = () => {
-              updateStatus(
-                uploadStatus,
-                "Ошибка соединения. Попробуйте позже.",
-                "error"
-              );
-            };
-
             xhr.send(formData);
           } catch (error) {
-            updateStatus(uploadStatus, "Не удалось отправить файл.", "error");
+            updateStatus(
+              uploadStatus,
+              "Ошибка загрузки: " + error.message,
+              "error"
+            );
           }
         }
 
         function updateStatus(element, message, statusClass) {
           element.textContent = message;
           element.className = `status-message ${statusClass}`;
-          element.classList.add("visible");
-
-          // Удаляем класс visible после анимации
-          setTimeout(() => {
-            element.classList.remove("visible");
-          }, 1000); // Длительность анимации
         }
       });
     </script>
