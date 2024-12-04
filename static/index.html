@@ -146,8 +146,10 @@
   <body>
     <div class="container">
       <img src="static/img/image.png" alt="Логотип" class="logo" />
-      <h1>Загрузка аудиосообщения</h1>
-      <p>Перетащите файл в область ниже или выберите его вручную.</p>
+      <h1>Загрузите аудиосообщение</h1>
+      <p id="dragText">
+        Перетащите файл в область ниже или выберите его вручную.
+      </p>
 
       <div class="drop-area">
         <p>Перетащите файл сюда</p>
@@ -179,6 +181,7 @@
         const uploadStatus = document.getElementById("uploadStatus");
         const telegramStatus = document.getElementById("telegramStatus");
         const button = document.querySelector("button");
+        const dragText = document.getElementById("dragText");
 
         dropArea.addEventListener("dragover", (e) => {
           e.preventDefault();
@@ -205,10 +208,10 @@
         });
 
         async function handleFileUpload(file) {
-          // Скрыть области для дропа и кнопку
+          // Скрыть области для дропа, кнопку и текст
           dropArea.style.display = "none";
           button.style.display = "none";
-
+          dragText.style.display = "none"; // Скрытие текста
           progressBarContainer.style.display = "block";
           percentText.style.display = "block";
           percentText.textContent = "0%";
@@ -238,18 +241,6 @@
                 const result = JSON.parse(xhr.responseText);
                 if (xhr.status === 200 && result.status === "success") {
                   tg.close();
-                  // updateStatus(
-                  //   uploadStatus,
-                  //   `Загружено успешно: ${result.filename}`,
-                  //   "success"
-                  // );
-                  // setTimeout(() => {
-                  //   updateStatus(
-                  //     telegramStatus,
-                  //     `Можете закрыть страницу и продолжить работу в Телеграмм боте.`,
-                  //     "success"
-                  //   );
-                  // }, 1000);
                 } else if (xhr.status === 400) {
                   const errorMessage = result.detail || "Неизвестная ошибка.";
                   updateStatus(

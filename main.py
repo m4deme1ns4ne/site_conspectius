@@ -28,6 +28,9 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Маршрут для отображения HTML-страницы
 @app.get("/", response_class=HTMLResponse)
 async def get_home():
+    """
+    Маршрут для отображения HTML-страницы. Отображает страницу static/index.html.
+    """
     with open("static/index.html", "r", encoding="utf-8") as file:
         html_content = file.read()
     return HTMLResponse(content=html_content)
@@ -35,6 +38,14 @@ async def get_home():
 
 @app.post("/upload/")
 async def upload_audio(file: UploadFile = File(...)):
+    """
+    Обработчик POST-запросов на /upload/. Проверяет тип файла, очищает папку uploads
+    и сохраняет файл, если он является аудиофайлом. Возвращает JSON-ответ со
+    статусом success, если файл успешно загружен, иначе - error.
+
+    :param file: файл, загруженный с клиента
+    :return: JSON-ответ с информацией о результате
+    """
     try:
         # Проверка MIME-типа
         mime_type, _ = guess_type(file.filename)
@@ -46,6 +57,7 @@ async def upload_audio(file: UploadFile = File(...)):
 
         # Очищаем папку и сохраняем новый файл
         delete_files_in_folder("uploads")
+
         file_path = f"uploads/{file.filename}"
         with open(file_path, "wb") as f:
             f.write(await file.read())
@@ -63,7 +75,15 @@ async def upload_audio(file: UploadFile = File(...)):
 
 # Обработчик ошибок валидации
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request, exc):
+async def validation_exception_handler(request, exc):   
+    """
+    Обработчик ошибок валидации. Возвращает JSON-ответ со статусом 422 и информацией
+    об ошибке.
+
+    :param request: запрос, в котором произошла ошибка
+    :param exc: экземпляр RequestValidationError
+    :return: JSONResponse
+    """
     return JSONResponse(
         status_code=422,
         content={"status": "error", "message": "Некорректный запрос.", "details": str(exc)},
