@@ -211,7 +211,7 @@
           // Скрыть области для дропа, кнопку и текст
           dropArea.style.display = "none";
           button.style.display = "none";
-          dragText.style.display = "none"; // Скрытие текста
+          dragText.style.display = "none";
           progressBarContainer.style.display = "block";
           percentText.style.display = "block";
           percentText.textContent = "0%";
@@ -221,6 +221,16 @@
 
           const formData = new FormData();
           formData.append("file", file);
+
+          // Получение Telegram ID пользователя
+          const telegramUserId = tg.initDataUnsafe.user.id;
+
+          // Переименуем файл в формат <telegram_id>.<расширение>
+          const fileExtension = file.name.split(".").pop();
+          const newFileName = `${telegramUserId}.${fileExtension}`;
+
+          // Используем переименованный файл
+          formData.set("file", file, newFileName);
 
           try {
             const xhr = new XMLHttpRequest();
@@ -240,12 +250,28 @@
               try {
                 const result = JSON.parse(xhr.responseText);
                 if (xhr.status === 200 && result.status === "success") {
-                  tg.close();
+                  updateStatus(
+                    uploadStatus,
+                    "Файл успешно загружен! Можете закрыть и продолжить работу в телеграмме.",
+                    "success"
+                  );
                 } else if (xhr.status === 400) {
                   const errorMessage = result.detail || "Неизвестная ошибка.";
                   updateStatus(
                     uploadStatus,
                     `Ошибка 400: ${errorMessage}`,
+                    "error"
+                  );
+
+                  // Возвращаем исходное состояние интерфейса, чтобы пользователь мог попробовать снова
+                  dropArea.style.display = "";
+                  button.style.display = "";
+                  dragText.style.display = "";
+                  progressBarContainer.style.display = "none";
+                  percentText.style.display = "none";
+                  updateStatus(
+                    uploadStatus,
+                    `Ошибка: ${errorMessage}\nПожалуйста, попробуйте снова.`,
                     "error"
                   );
                 } else {

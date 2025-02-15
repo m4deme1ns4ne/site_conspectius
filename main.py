@@ -62,7 +62,7 @@ async def upload_audio(file: UploadFile = File(...)):
         with open(file_path, "wb") as f:
             f.write(await file.read())
 
-        return {"status": "success", "filename": file.filename}
+        return {"status": "success"}
     except HTTPException as e:
         raise e
     except Exception as e:
