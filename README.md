@@ -24,7 +24,7 @@ SITE_CONPECTIUS — это веб-сайт, предназначенный дл�
 1. **Клонируйте репозиторий:**
 
    ```bash
-   git clone https://github.com/ваш_репозиторий/site_conspectius.git
+   git clone https://github.com/m4deme1ns4ne/site_conspectius
    cd site_conspectius
    ```
 
