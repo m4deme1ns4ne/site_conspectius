@@ -58,7 +58,7 @@ async def upload_audio(file: UploadFile = File(...)):
         # Очищаем папку и сохраняем новый файл
         delete_files_in_folder("uploads")
 
-        file_path = f"uploads/{file.filename}"
+        file_path = f"/SITE_CONSPECTIUS/shared_audio/{file.filename}"
         with open(file_path, "wb") as f:
             f.write(await file.read())
 
