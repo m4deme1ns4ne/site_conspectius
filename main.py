@@ -5,10 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from starlette.responses import JSONResponse
 import uvicorn
-
-from mimetypes import guess_type
-
-from etc.delete_files import delete_files_in_folder
+import os
 
 app = FastAPI()
 
@@ -47,16 +44,11 @@ async def upload_audio(file: UploadFile = File(...)):
     :return: JSON-ответ с информацией о результате
     """
     try:
-        # Проверка MIME-типа
-        mime_type, _ = guess_type(file.filename)
-        if not mime_type or not mime_type.startswith("audio/"):
-            raise HTTPException(
-                status_code=400,
-                detail=f"Файл не является аудиофайлом. "
-            )
-
-        # Очищаем папку и сохраняем новый файл
-        delete_files_in_folder("uploads")
+        try:
+            # Очищаем папку и сохраняем новый файл
+            os.remove(f"/SITE_CONSPECTIUS/shared_audio/{file.filename}")
+        except FileNotFoundError:
+            print("Старый файл не найден")
 
         file_path = f"/SITE_CONSPECTIUS/shared_audio/{file.filename}"
         with open(file_path, "wb") as f:
@@ -91,4 +83,4 @@ async def validation_exception_handler(request, exc):
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", reload=True)
+    uvicorn.run("main:app")
