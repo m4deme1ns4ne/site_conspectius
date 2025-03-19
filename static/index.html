@@ -165,11 +165,37 @@
         display: none;
       }
 
-      /* Добавляем адаптивность */
+      .file-size-warning {
+        color: #ff6b6b;
+        font-size: 14px;
+        margin-top: 8px;
+        display: none;
+      }
+
+      .or-divider {
+        margin: 10px 0;
+        color: #8892b0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14px;
+      }
+
+      .or-divider::before,
+      .or-divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #233554;
+      }
+
       @media (max-width: 480px) {
         .container {
           padding: 20px;
           margin: 10px;
+        }
+        .or-divider {
+          margin: 8px 0;
         }
       }
     </style>
@@ -179,7 +205,7 @@
       <img src="static/img/image.png" alt="Логотип" class="logo" />
       <h1>Загрузите аудиосообщение</h1>
       <p id="dragText">
-        Перетащите файл в область ниже или выберите его вручную.
+        Перетащите файл в область ниже или выберите его вручную.<br />
       </p>
 
       <div class="drop-area">
@@ -188,7 +214,7 @@
       </div>
 
       <button onclick="document.getElementById('audioFile').click()">
-        Выбрать файл
+        Выберите файл
       </button>
 
       <div class="progress-bar">
@@ -260,7 +286,24 @@
           return speedHistory.reduce((a, b) => a + b, 0) / speedHistory.length;
         }
 
+        const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200 МБ в байтах
+
         async function handleFileUpload(file) {
+          // Проверка размера файла перед загрузкой
+          if (file.size > MAX_FILE_SIZE) {
+            updateStatus(
+              uploadStatus,
+              "Ошибка: Файл превышает лимит 200 МБ",
+              "error"
+            );
+            progressBarContainer.style.display = "none";
+            percentText.style.display = "none";
+            dropArea.style.display = "";
+            button.style.display = "";
+            dragText.style.display = "";
+            return;
+          }
+
           uploadStartTime = Date.now();
           lastLoaded = 0;
 
