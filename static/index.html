@@ -19,6 +19,51 @@
         --background-dark: #0a192f;
         --text-light: #ccd6f6;
         --spacing-md: 20px;
+        --easing: cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      /* Анимации */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes progressPulse {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      @keyframes successMessage {
+        0% {
+          opacity: 0;
+          transform: translateY(20px) scale(0.95);
+          filter: blur(2px);
+        }
+        60% {
+          transform: translateY(-8px) scale(1.05);
+          opacity: 0.9;
+        }
+        80% {
+          transform: translateY(2px) scale(1.02);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+          filter: blur(0);
+        }
       }
 
       body {
@@ -42,6 +87,7 @@
         max-width: 400px;
         width: 100%;
         position: relative;
+        animation: fadeInUp 0.6s var(--easing);
       }
 
       .logo {
@@ -96,7 +142,7 @@
         border: none;
         border-radius: 8px;
         cursor: pointer;
-        transition: background-color 0.3s ease, transform 0.2s ease;
+        transition: all 0.3s var(--easing);
         font-size: 16px;
       }
 
@@ -110,12 +156,19 @@
         font-size: 16px;
         font-weight: 500;
         opacity: 0;
-        transition: opacity 1s ease-in-out;
+        transition: transform 0.3s var(--easing), opacity 0.3s var(--easing);
       }
 
       .status-message.success {
-        color: #64ffda;
-        opacity: 1;
+        animation: successMessage 1s var(--easing) forwards;
+        box-shadow: 0 4px 20px rgba(100, 255, 218, 0.2);
+        transition: background 0.3s ease, box-shadow 0.3s ease;
+        color: var(--primary-color);
+        position: relative;
+        padding: 12px;
+        border-radius: 8px;
+        background: rgba(100, 255, 218, 0.1);
+        border: 1px solid var(--primary-color);
       }
 
       .status-message.error {
@@ -139,7 +192,8 @@
         height: 100%;
         background-color: #64ffda;
         border-radius: 2px;
-        transition: width 0.2s ease;
+        transition: width 0.4s var(--easing);
+        animation: progressPulse 1.5s infinite;
       }
 
       #percent {
@@ -198,12 +252,31 @@
           margin: 8px 0;
         }
       }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+          transition: none !important;
+        }
+        .status-message.success {
+          animation: fadeInUp 0.6s ease forwards !important;
+        }
+      }
+
+      #uploadTitle {
+        transition: all 0.3s var(--easing);
+      }
+
+      .uploading-title {
+        color: var(--primary-color);
+        transform: scale(1.05);
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <img src="static/img/image.png" alt="Логотип" class="logo" />
-      <h1>Загрузите аудиосообщение</h1>
+      <h1 id="uploadTitle">Загрузите аудиосообщение</h1>
       <p id="dragText">
         Перетащите файл в область ниже или выберите его вручную.<br />
       </p>
@@ -289,6 +362,11 @@
         const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200 МБ в байтах
 
         async function handleFileUpload(file) {
+          // Обновляем заголовок при начале загрузки
+          const titleElement = document.getElementById("uploadTitle");
+          titleElement.textContent = "Загрузка аудиосообщения";
+          titleElement.classList.add("uploading-title");
+
           // Проверка размера файла перед загрузкой
           if (file.size > MAX_FILE_SIZE) {
             updateStatus(
@@ -375,6 +453,9 @@
             };
 
             xhr.onload = () => {
+              // Возвращаем исходный заголовок после загрузки
+              titleElement.textContent = "Аудио успешного загружено";
+              titleElement.classList.remove("uploading-title");
               // Скрываем элементы скорости и времени
               document.getElementById("speed").style.display = "none";
               document.getElementById("timeLeft").style.display = "none";
