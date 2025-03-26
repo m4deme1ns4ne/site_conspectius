@@ -18,5 +18,3 @@ RUN poetry config virtualenvs.create false && \
 COPY . .
 
 CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-
-# docker build --no-cache . -t site_conspectius && docker run -p 8000:8000 site_conspectius
