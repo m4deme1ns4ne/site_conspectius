@@ -13,13 +13,13 @@ file_logger()
 
 app = FastAPI()
 
-# Разрешаем доступ с клиента (например, для разработки локально)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://conspectius.ru", "http://www.conspectius.ru"],
-    allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type", "Authorization"],
-    allow_credentials=True,
+    allow_origins=[
+        "https://conspectius.ru", 
+        "https://www.conspectius.ru",
+        "http://localhost:8000"  # Для тестирования
+    ],
 )
 
 # Путь для статики
