@@ -8,6 +8,7 @@ import uvicorn
 import os
 from loguru import logger
 from logger import file_logger
+import re
 
 file_logger()
 
@@ -61,7 +62,34 @@ async def upload_audio(file: UploadFile = File(...)):
         except FileNotFoundError:
             logger.warning(f"Файл для замены не найден: {file.filename}")
 
+        # Защита от path traversal
+        filename = os.path.basename(file.filename)
+        if not re.match(r"^[\w\-\.]+$", filename):
+            raise HTTPException(400, "Invalid filename")
+        
+        # 1. Запретить множественные точки (защита от скрытых файлов)
+        if filename.startswith('.') or filename.count('.') > 1:
+            raise HTTPException(400, "Invalid filename")
+        
+        # 2. Ограничить длину имени
+        if len(filename) > 100:
+            raise HTTPException(400, "Filename too long")
+
         file_path = f"/SITE_CONSPECTIUS/shared_audio/{file.filename}"
+        
+        # Защита от path traversal
+        filename = os.path.basename(file.filename)
+        if not re.match(r"^[\w\-\.]+$", filename):
+            raise HTTPException(400, "Invalid filename")
+        
+        # 1. Запретить множественные точки (защита от скрытых файлов)
+        if filename.startswith('.') or filename.count('.') > 1:
+            raise HTTPException(400, "Invalid filename")
+        
+        # 2. Ограничить длину имени
+        if len(filename) > 100:
+            raise HTTPException(400, "Filename too long") 
+        
         with open(file_path, "wb") as f:
             content = await file.read()
             f.write(content)
